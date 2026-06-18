@@ -1,0 +1,46 @@
+{
+  "name": "tapbackend",
+  "version": "1.0.0",
+  "description": "TapFlow - Stellar payment sponsorship API",
+  "main": "dist/main.js",
+  "scripts": {
+    "start": "node dist/main.js",
+    "dev": "ts-node src/main.ts",
+    "build": "tsc",
+    "test": "jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Tapfloww/TapBackend.git"
+  },
+  "keywords": ["stellar", "sponsorship", "api"],
+  "author": "TapFlow",
+  "license": "ISC",
+  "type": "module",
+  "bugs": {
+    "url": "https://github.com/Tapfloww/TapBackend/issues"
+  },
+  "homepage": "https://github.com/Tapfloww/TapBackend#readme",
+  "dependencies": {
+    "@nestjs/common": "^11.1.27",
+    "@nestjs/config": "^4.0.4",
+    "@nestjs/core": "^11.1.27",
+    "@nestjs/jwt": "^11.0.2",
+    "@nestjs/passport": "^11.0.5",
+    "@nestjs/platform-express": "^11.1.27",
+    "@nestjs/typeorm": "^11.0.2",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.15.1",
+    "passport": "^0.7.0",
+    "passport-jwt": "^4.0.1",
+    "postgresql": "^0.0.1",
+    "typeorm": "^0.3.30",
+    "uuid": "^14.0.0"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.6",
+    "@types/node": "^25.9.3",
+    "ts-loader": "^9.6.1",
+    "typescript": "^6.0.3"
+  }
+}
