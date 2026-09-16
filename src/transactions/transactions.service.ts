@@ -1,7 +1,8 @@
-import { Injectable } from '@nestjs/common';
-import { v4 as uuidv4 } from 'uuid';
+import { BadRequestException, Injectable } from '@nestjs/common';
+import { randomUUID } from 'crypto';
+import { PoliciesService } from '../policies/policies.service';
 
-interface Transaction {
+export interface Transaction {
   id: string;
   appId: string;
   userId: string | null;
@@ -9,7 +10,7 @@ interface Transaction {
   amount: number;
   fee: number;
   asset: string;
-  status: 'pending' | 'success' | 'failed';
+  status: 'pending_onchain' | 'success' | 'failed';
   createdAt: string;
 }
 
@@ -17,48 +18,53 @@ interface Transaction {
 export class TransactionsService {
   private txs: Map<string, Transaction> = new Map();
 
-  constructor() {
-    for (let i = 0; i < 10; i++) {
-      const tx: Transaction = {
-        id: uuidv4(),
-        appId: uuidv4(),
-        userId: `user_${Math.random().toString(36).substring(7)}`,
-        txHash: Math.random().toString(36).substring(2, 66).padEnd(64, '0'),
-        amount: Math.random() * 10000,
-        fee: Math.random() * 1,
-        asset: 'USDC',
-        status: ['pending', 'success', 'failed'][Math.floor(Math.random() * 3)] as any,
-        createdAt: new Date(Date.now() - Math.random() * 86400000).toISOString(),
-      };
-      this.txs.set(tx.id, tx);
-    }
-  }
+  constructor(private readonly policies: PoliciesService) {}
 
   getByAppId(appId: string, filters?: { userId?: string; status?: string }) {
-    let results = Array.from(this.txs.values()).filter(t => t.appId === appId);
+    let results = Array.from(this.txs.values()).filter((t) => t.appId === appId);
     if (filters?.userId) {
-      results = results.filter(t => t.userId?.includes(filters.userId!));
+      results = results.filter((t) => t.userId?.includes(filters.userId!));
     }
     if (filters?.status) {
-      results = results.filter(t => t.status === filters.status);
+      results = results.filter((t) => t.status === filters.status);
     }
-    return results;
+    return results.sort(
+      (a, b) => +new Date(b.createdAt) - +new Date(a.createdAt),
+    );
   }
 
   getById(id: string) {
     return this.txs.get(id);
   }
 
-  create(appId: string, data: { userId?: string; amount: number; fee: number; asset: string }) {
+  quote(appId: string, amount: number, asset = 'USDC') {
+    return this.policies.quote(appId, amount, asset);
+  }
+
+  create(
+    appId: string,
+    data: { userId?: string; amount: number; fee: number; asset: string },
+  ) {
+    if (!(data.amount > 0)) {
+      throw new BadRequestException('amount must be greater than zero');
+    }
+    if (!(data.fee > 0)) {
+      throw new BadRequestException('fee must be greater than zero');
+    }
+    const asset = data.asset || 'USDC';
+    const policy = this.policies.assertFeeAllowed(appId, data.fee, asset);
+    this.policies.consumeFee(policy.id, data.fee);
+
     const tx: Transaction = {
-      id: uuidv4(),
+      id: randomUUID(),
       appId,
       userId: data.userId || null,
-      txHash: Math.random().toString(36).substring(2, 66).padEnd(64, '0'),
+      // Honest pending ref until a Horizon/Soroban submit attaches a real hash.
+      txHash: `pending_${randomUUID().replace(/-/g, '').slice(0, 16)}`,
       amount: data.amount,
       fee: data.fee,
-      asset: data.asset,
-      status: 'pending',
+      asset,
+      status: 'pending_onchain',
       createdAt: new Date().toISOString(),
     };
     this.txs.set(tx.id, tx);
