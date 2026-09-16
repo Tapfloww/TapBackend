@@ -16,7 +16,13 @@ export class PoliciesController {
     @Body('asset') asset: string,
     @Body('maxFeePerTx') maxFeePerTx: number,
     @Body('dailyCap') dailyCap: number,
+    @Body('policyBps') policyBps?: number,
   ) {
-    return this.policiesService.create(appId, { asset, maxFeePerTx, dailyCap });
+    return this.policiesService.create(appId, {
+      asset,
+      maxFeePerTx,
+      dailyCap,
+      policyBps,
+    });
   }
 }

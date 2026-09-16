@@ -1,6 +1,6 @@
 import { Controller, Get, Post, Body, Param } from '@nestjs/common';
 import { AppsService } from './apps.service';
-import { v4 as uuidv4 } from 'uuid';
+import { randomUUID } from 'crypto';
 
 @Controller('v1/apps')
 export class AppsController {
@@ -20,7 +20,7 @@ export class AppsController {
   create(@Body('name') name: string) {
     return this.appsService.create({
       name,
-      organizationId: uuidv4(),
+      organizationId: randomUUID(),
     });
   }
 }
