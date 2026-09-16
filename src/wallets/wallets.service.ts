@@ -1,7 +1,8 @@
-import { Injectable } from '@nestjs/common';
-import { v4 as uuidv4 } from 'uuid';
+import { BadRequestException, Injectable } from '@nestjs/common';
+import { randomUUID } from 'crypto';
+import { isStellarPublicKey } from '../stellar/stellar';
 
-interface SponsorWallet {
+export interface SponsorWallet {
   id: string;
   appId: string;
   address: string;
@@ -16,16 +17,27 @@ export class WalletsService {
   private wallets: Map<string, SponsorWallet> = new Map();
 
   getByAppId(appId: string) {
-    return Array.from(this.wallets.values()).filter(w => w.appId === appId);
+    return Array.from(this.wallets.values()).filter((w) => w.appId === appId);
   }
 
-  create(appId: string, data: { address: string; asset: string; lowBalanceThreshold: number }) {
+  create(
+    appId: string,
+    data: { address: string; asset: string; lowBalanceThreshold: number },
+  ) {
+    if (!isStellarPublicKey(data.address)) {
+      throw new BadRequestException(
+        'sponsor wallet address must be a Stellar G… public key',
+      );
+    }
+    if (!(data.lowBalanceThreshold >= 0)) {
+      throw new BadRequestException('lowBalanceThreshold must be >= 0');
+    }
     const wallet: SponsorWallet = {
-      id: uuidv4(),
+      id: randomUUID(),
       appId,
-      address: data.address,
-      balance: Math.random() * 1000,
-      asset: data.asset,
+      address: data.address.trim(),
+      balance: 0,
+      asset: data.asset || 'USDC',
       lowBalanceThreshold: data.lowBalanceThreshold,
       createdAt: new Date().toISOString(),
     };
@@ -34,10 +46,18 @@ export class WalletsService {
   }
 
   topUp(walletId: string, amount: number) {
-    const wallet = this.wallets.get(walletId);
-    if (wallet) {
-      wallet.balance += amount;
+    if (!(amount > 0)) {
+      throw new BadRequestException('top-up amount must be greater than zero');
     }
+    const wallet = this.wallets.get(walletId);
+    if (!wallet) {
+      throw new BadRequestException('wallet not found');
+    }
+    wallet.balance += amount;
     return wallet;
+  }
+
+  getById(id: string) {
+    return this.wallets.get(id);
   }
 }
