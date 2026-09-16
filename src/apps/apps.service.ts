@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { v4 as uuidv4 } from 'uuid';
+import { randomUUID } from 'crypto';
 
 interface App {
   id: string;
@@ -15,8 +15,8 @@ export class AppsService {
 
   constructor() {
     const defaultApp: App = {
-      id: uuidv4(),
-      organizationId: uuidv4(),
+      id: randomUUID(),
+      organizationId: randomUUID(),
       name: 'MyApp',
       apiKeyPrefix: 'sk_test_' + Math.random().toString(36).substring(7),
       createdAt: new Date().toISOString(),
@@ -34,7 +34,7 @@ export class AppsService {
 
   create(data: { name: string; organizationId: string }) {
     const app: App = {
-      id: uuidv4(),
+      id: randomUUID(),
       organizationId: data.organizationId,
       name: data.name,
       apiKeyPrefix: 'sk_test_' + Math.random().toString(36).substring(7),

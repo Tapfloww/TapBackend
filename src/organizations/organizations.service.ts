@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { v4 as uuidv4 } from 'uuid';
+import { randomUUID } from 'crypto';
 
 interface Organization {
   id: string;
@@ -13,7 +13,7 @@ export class OrganizationsService {
 
   constructor() {
     const defaultOrg: Organization = {
-      id: uuidv4(),
+      id: randomUUID(),
       name: 'Default Organization',
       createdAt: new Date().toISOString(),
     };

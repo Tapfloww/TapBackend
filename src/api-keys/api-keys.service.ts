@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { v4 as uuidv4 } from 'uuid';
+import { randomUUID } from 'crypto';
 
 interface ApiKey {
   id: string;
@@ -21,7 +21,7 @@ export class ApiKeysService {
 
   create(appId: string, data: { name: string }) {
     const key: ApiKey = {
-      id: uuidv4(),
+      id: randomUUID(),
       appId,
       name: data.name,
       prefix: 'sk_' + Math.random().toString(36).substring(7),
